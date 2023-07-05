@@ -1,14 +1,15 @@
 const express = require("express");
 const userRouter = express.Router();
+const { verifyToken } = require("../middlewares/verifyToken");
 const {
   createUser,
-  getUsers,
-  authenticateUser,
+  loginUser,
+  getProfile,
 } = require("../backend_Controllers/users");
 
 //creating new user
 userRouter.post("/signup", createUser);
-userRouter.post("/login", authenticateUser);
+userRouter.post("/login", loginUser);
 
-userRouter.get("/users", getUsers);
+userRouter.get("/profile", verifyToken, getProfile);
 module.exports = userRouter;

@@ -1,7 +1,10 @@
-const mongoose = require("mongoose");
 const user = require("../models/userSchema");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+const jwt = require("jsonwebtoken");
+
+//JST
+//
 const createUser = async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -19,7 +22,7 @@ const createUser = async (req, res) => {
   }
 };
 
-const authenticateUser = async (req, res) => {
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     const alreadyUser = await user.findOne({ email }).exec();
@@ -29,7 +32,16 @@ const authenticateUser = async (req, res) => {
       const hashedPassword = alreadyUser.password;
       const match = await bcrypt.compare(password, hashedPassword);
       if (match) {
-        res.status(200).json("You are authorized");
+        const payload = { email };
+        const token = jwt.sign(payload, process.env.JWT_SECTRET, {
+          expiresIn: "2000s",
+        });
+        res
+          .cookie("access_token", token, {
+            httpOnly: true,
+            maxAge: 1000 * 2000,
+          })
+          .json(payload);
       } else {
         res.status(401).json("Unauthorized: wrong password");
       }
@@ -40,14 +52,23 @@ const authenticateUser = async (req, res) => {
   }
 };
 
-const getUsers = async (req, res) => {
+const getProfile = async (req, res) => {
+  //   console.log(req.user);
+  //   res.send("profile");
+
   try {
-    const data = await user.find({});
-    res.status(201).json(data);
+    const userProfile = await user.findOne({ email: req.user.email }).exec();
+
+    if (!userProfile) {
+      res.status(404).json("User profile not found");
+    } else {
+      const { email, name } = userProfile;
+      res.status(200).json({ email, name });
+    }
   } catch (error) {
     console.log(error);
-    res.status(500).send("Error creating Product");
+    res.status(500).send("Error retrieving user profile");
   }
 };
 
-module.exports = { createUser, getUsers, authenticateUser };
+module.exports = { createUser, getProfile, loginUser };
