@@ -1,9 +1,14 @@
 const express = require("express");
-
 const userRouter = express.Router();
+const {
+  createUser,
+  getUsers,
+  authenticateUser,
+} = require("../backend_Controllers/users");
 
-userRouter.get("/users", (req, res) => {
-  res.send("it is working agian");
-});
+//creating new user
+userRouter.post("/signup", createUser);
+userRouter.post("/login", authenticateUser);
 
+userRouter.get("/users", getUsers);
 module.exports = userRouter;
