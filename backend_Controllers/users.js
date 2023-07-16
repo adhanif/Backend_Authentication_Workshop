@@ -5,20 +5,22 @@ const jwt = require("jsonwebtoken");
 
 //JST
 //
-const createUser = async (req, res) => {
+const signup = async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    const alreadyUser = await user.findOne({ email }).exec();
+    const alreadyUser = await user.findOne({ email });
+
     if (alreadyUser) {
-      res.status(409).json("User already exists");
+      // res.status(409).json("User already exists");
+      throw new Error("User already exists");
     } else {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       const data = await user.create({ email, password: hashedPassword, name });
       res.status(201).json(data);
     }
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Error creating Product");
+    // console.log(error);
+    res.status(500).send(error.message);
   }
 };
 
@@ -27,28 +29,41 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
     const alreadyUser = await user.findOne({ email }).select("+password");
     if (!alreadyUser) {
-      res.status(404).json("User not found");
+      throw new Error("User does not exist");
+      // res.status(404).json("User not found");
     } else {
       // const hashedPassword = alreadyUser.password;
       const match = await bcrypt.compare(password, alreadyUser.password);
       if (match) {
-        const payload = { email };
+        // res.json(alreadyUser);
+        const payload = { email: alreadyUser.email, id: alreadyUser._id };
         const token = jwt.sign(payload, process.env.JWT_SECTRET, {
-          expiresIn: "2000s",
+          expiresIn: "80000s",
         });
         res
           .cookie("access_token", token, {
-            httpOnly: true,
             maxAge: 1000 * 2000,
           })
           .json(payload);
       } else {
-        res.status(401).json("Unauthorized: wrong password");
+        throw new Error("wrong password");
+        // res.status(401).json("Unauthorized: wrong password");
       }
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send("Error authenticating user");
+    res.status(500).send(error.message);
+  }
+};
+
+const logout = async (req, res) => {
+  try {
+    res
+      .cookie("access_token", "", { maxAge: 0 })
+      .end("You have been logged out successfully!");
+    // res.send("You have been logged out successfully!");
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 };
 
@@ -71,4 +86,4 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { createUser, getProfile, loginUser };
+module.exports = { signup, getProfile, loginUser, logout };
