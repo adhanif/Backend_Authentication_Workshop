@@ -5,10 +5,12 @@ const jwt = require("jsonwebtoken");
 
 //JST
 //
-const createUser = async (req, res) => {
+const signup = async (req, res) => {
   try {
     const { email, password, name } = req.body;
     const alreadyUser = await user.findOne({ email }).exec();
+    console.log(alreadyUser);
+
     if (alreadyUser) {
       res.status(409).json("User already exists");
     } else {
@@ -52,6 +54,11 @@ const loginUser = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+  } catch (error) {}
+};
+
 const getProfile = async (req, res) => {
   //   console.log(req.user);
   //   res.send("profile");
@@ -71,4 +78,4 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { createUser, getProfile, loginUser };
+module.exports = { signup, getProfile, loginUser, logout };
