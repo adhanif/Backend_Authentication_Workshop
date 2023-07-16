@@ -11,6 +11,6 @@ const {
 //creating new user
 authRouter.post("/signup", signup);
 authRouter.post("/login", loginUser);
-authRouter.post("/logout", loginUser);
+authRouter.post("/logout", logout);
 authRouter.get("/profile", verifyToken, getProfile);
 module.exports = authRouter;
