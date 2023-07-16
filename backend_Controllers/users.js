@@ -25,12 +25,12 @@ const createUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const alreadyUser = await user.findOne({ email }).exec();
+    const alreadyUser = await user.findOne({ email }).select("+password");
     if (!alreadyUser) {
       res.status(404).json("User not found");
     } else {
-      const hashedPassword = alreadyUser.password;
-      const match = await bcrypt.compare(password, hashedPassword);
+      // const hashedPassword = alreadyUser.password;
+      const match = await bcrypt.compare(password, alreadyUser.password);
       if (match) {
         const payload = { email };
         const token = jwt.sign(payload, process.env.JWT_SECTRET, {
